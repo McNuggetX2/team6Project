@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Take Quiz</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    let currentQuiz = null;
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    async function loadQuizzes() {
+      const response = await fetch('/quizzes/all');
+      const quizzes = await response.json();
+      const select = document.getElementById('quiz-select');
+
+      quizzes.forEach(quiz => {
+        const option = document.createElement('option');
+        option.value = quiz.id;
+        option.textContent = quiz.title;
+        select.appendChild(option);
+      });
+    }
+
+    async function startQuiz() {
+      const quizId = document.getElementById('quiz-select').value;
+      const response = await fetch(`/quizzes/get?quizId=${quizId}`);
+      currentQuiz = await response.json();
+      document.getElementById('quiz-container').style.display = 'block';
+      document.getElementById('quiz-selection').style.display = 'none';
+      showQuestion();
+    }
+
+    function showQuestion() {
+      if (currentQuestionIndex < currentQuiz.questions.length) {
+        const question = currentQuiz.questions[currentQuestionIndex];
+        document.getElementById('question-prompt').textContent = question.prompt;
+      } else {
+        // Quiz finished
+        document.getElementById('quiz-container').innerHTML = `<h2>Your score: ${score}/${currentQuiz.questions.length}</h2>`;
+      }
+    }
+
+    function submitAnswer() {
+      const answer = document.getElementById('answer-input').value.trim();
+      const correctAnswer = currentQuiz.questions[currentQuestionIndex].answer.trim();
+      if (answer.toLowerCase() === correctAnswer.toLowerCase()) {
+        score++;
+      }
+      currentQuestionIndex++;
+      document.getElementById('answer-input').value = '';
+      showQuestion();
+    }
+
+    window.onload = loadQuizzes;
+  </script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="nav">
+      <div class="logo">
+        <h1>NoteStream</h1>
+      </div>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html#home">Home</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <section class="hero">
+    <div class="hero-content">
+      <div id="quiz-selection">
+        <h1>Select a Quiz to Take</h1>
+        <select id="quiz-select">
+          <option value="" disabled selected>Select a quiz</option>
+        </select>
+        <button class="cta-button" onclick="startQuiz()">Start Quiz</button>
+      </div>
+
+      <div id="quiz-container" style="display:none;">
+        <h2 id="question-prompt"></h2>
+        <input type="text" id="answer-input" placeholder="Your Answer">
+        <button class="cta-button" onclick="submitAnswer()">Submit Answer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2024 NoteStream. All rights reserved.</p>
+  </footer>
+</body>
+</html>
+
+
